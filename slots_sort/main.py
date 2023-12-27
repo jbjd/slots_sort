@@ -1,10 +1,11 @@
+import argparse
 import os
 import re
+from argparse import Namespace
 from collections.abc import Iterator
 from pathlib import Path
 
 SLOTS_REGEX: str = r"(?P<start>[ \t]+__slots__[ \t]*=[ \t]*)[\[(](?P<contents>.*?)[\])]"
-MAX_LINE_SIZE = 88
 
 
 def format_as_multiline_string(start_of_string: str, sorted_slot_string: str) -> str:
@@ -30,7 +31,7 @@ def format_as_multiline_string(start_of_string: str, sorted_slot_string: str) ->
     return f"{opening_line}{sorted_slot_string}{closing_line}"
 
 
-def sort_slots(file_contents: str) -> list[str]:
+def sort_slots(file_contents: str, max_line_length: int) -> list[str]:
     slots_in_file: Iterator = re.finditer(
         SLOTS_REGEX,
         file_contents,
@@ -54,7 +55,7 @@ def sort_slots(file_contents: str) -> list[str]:
 
         length_if_one_line: int = len(start_of_string) + len(sorted_slot_string) + 2
         final_string: str
-        if length_if_one_line > MAX_LINE_SIZE:
+        if length_if_one_line > max_line_length:
             final_string = format_as_multiline_string(
                 start_of_string, sorted_slot_string
             )
@@ -78,15 +79,49 @@ def get_updated_file_contents(
 
 
 def main() -> None:
-    working_dir = Path(os.getcwd())
+    parser = argparse.ArgumentParser(
+        prog="slots_sort", description="Sorts __slots__ in python files"
+    )
+    parser.add_argument(
+        "-l",
+        "--line-length",
+        help="max line length, defaults to 88 to match with black",
+        default=88,
+    )
+    parser.add_argument(
+        "-p",
+        "--path",
+        help="directory or file to run on, defaults to all files in current directory",
+        default=os.getcwd(),
+    )
 
-    python_file_paths: list[Path] = [path for path in working_dir.rglob("*.py")]
+    args: Namespace = parser.parse_args()
+
+    if not os.path.exists(args.path):
+        raise Exception(f"File or directory {args.path} does not exist")
+
+    working_dir = Path(args.path)
+
+    python_file_paths: list[Path]
+    if os.path.isfile(args.path):
+        file_path = Path(args.path)
+        if file_path.suffix != ".py":
+            raise ValueError("Provided file is not a .py file")
+        python_file_paths = [file_path]
+    else:
+        python_file_paths = [path for path in working_dir.rglob("*.py")]
+
+    if not python_file_paths:
+        print(f"No .py files found in {working_dir}")
+        return
 
     for path in python_file_paths:
         with open(path, "r") as fp:
             file_contents: str = fp.read()
 
-        list_of_replacements: list[str] = sort_slots(file_contents)
+        list_of_replacements: list[str] = sort_slots(
+            file_contents, int(args.line_length)
+        )
 
         if not list_of_replacements:
             continue
@@ -103,4 +138,5 @@ def main() -> None:
             print(e)
 
 
-main()
+if __name__ == "__main__":
+    main()
