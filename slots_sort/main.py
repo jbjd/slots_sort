@@ -32,6 +32,8 @@ def format_as_multiline_string(start_of_string: str, sorted_slot_string: str) ->
 
 
 def sort_slots(file_contents: str, max_line_length: int) -> list[str]:
+    """Finds all __slots__ in file contents and returns list of their sorted version"""
+
     slots_in_file: Iterator = re.finditer(
         SLOTS_REGEX,
         file_contents,
@@ -70,6 +72,7 @@ def sort_slots(file_contents: str, max_line_length: int) -> list[str]:
 def get_updated_file_contents(
     file_contents: str, list_of_replacements: list[str]
 ) -> str:
+    """Substitutes original __slots__ for the sorted version"""
     return re.sub(
         SLOTS_REGEX,
         lambda _: list_of_replacements.pop(0),
@@ -78,7 +81,8 @@ def get_updated_file_contents(
     )
 
 
-def main() -> None:
+def _setup_parser() -> Namespace:  # pragma: no cover
+    """Sets up command line argument parser"""
     parser = argparse.ArgumentParser(
         prog="slots_sort", description="Sorts __slots__ in python files"
     )
@@ -95,7 +99,11 @@ def main() -> None:
         default=os.getcwd(),
     )
 
-    args: Namespace = parser.parse_args()
+    return parser.parse_args()
+
+
+def main() -> None:
+    args: Namespace = _setup_parser()
 
     if not os.path.exists(args.path):
         raise Exception(f"File or directory {args.path} does not exist")
