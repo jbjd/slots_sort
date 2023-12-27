@@ -1,0 +1,14 @@
+[project]
+authors = [
+  {name = "James Demetris"},
+]
+dynamic = ["version"]
+name = "slots_sort"
+requires-python = ">= 3.8"
+version = "1.0.0"
+
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = [
+  "setuptools >= 69.0.0",
+]
