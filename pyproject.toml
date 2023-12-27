@@ -11,3 +11,6 @@ build-backend = "setuptools.build_meta"
 requires = [
   "setuptools >= 69.0.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/jbjd/slots_sort"
