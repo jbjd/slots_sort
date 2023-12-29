@@ -22,6 +22,7 @@ def format_as_multiline_string(start_of_string: str, sorted_slot_string: str) ->
     else:
         opening_white_space += "    "
 
+    sorted_slot_string += ","
     multiline_slot_string: list[str] = [
         f"{opening_white_space}{var}\n" for var in sorted_slot_string.split(" ")
     ]
