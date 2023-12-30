@@ -89,3 +89,70 @@ class A:
     output: str = get_updated_file_contents(example_input, formated_slots)
 
     assert output == expected_output
+
+
+def test_with_comment():
+    example_input: str = """
+class A:
+    __slots__ = ["asdf", "zasdf", "abghjkl", "asdf1234"]  # a
+"""
+    expected_output: str = """
+class A:
+    __slots__ = (
+        "abghjkl",
+        "asdf",
+        "asdf1234",
+        "zasdf",
+    )  # a
+"""
+    # set max line so only class A becomes multiline
+    formated_slots: str = sort_slots(example_input, max_line_length=40)
+    output: str = get_updated_file_contents(example_input, formated_slots)
+
+    assert output == expected_output
+
+
+def test_with_comment_multiline():
+    example_input: str = """
+class A:
+    __slots__ = (
+        "zasdf",
+        "abghjkl",
+        "asdf",    # asdf
+        "asdf1234"
+
+    )
+"""
+    expected_output: str = """
+class A:
+    __slots__ = (
+        "abghjkl",
+        "asdf",    # asdf
+        "asdf1234",
+        "zasdf",
+    )
+"""
+    # set max line so only class A becomes multiline
+    formated_slots: str = sort_slots(example_input, max_line_length=40)
+    output: str = get_updated_file_contents(example_input, formated_slots)
+
+    assert output == expected_output
+
+
+def test_short_multiline():
+    example_input: str = """
+class A:
+    __slots__ = (
+        "b",
+        "a",
+    )
+"""
+    expected_output: str = """
+class A:
+    __slots__ = ("a", "b")
+"""
+    # set max line so only class A becomes multiline
+    formated_slots: str = sort_slots(example_input, max_line_length=40)
+    output: str = get_updated_file_contents(example_input, formated_slots)
+
+    assert output == expected_output

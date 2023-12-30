@@ -8,9 +8,8 @@ from pathlib import Path
 SLOTS_REGEX: str = r"(?P<start>[ \t]+__slots__[ \t]*=[ \t]*)[\[(](?P<contents>.*?)[\])]"
 
 
-def format_as_multiline_string(start_of_string: str, sorted_slot_string: str) -> str:
+def format_as_multiline(start_of_string: str, sorted_slots: str | list[str]) -> str:
     """Takes in a one line string of slots and returns it as a multiline string"""
-
     opening_white_space: str = start_of_string[: start_of_string.find("_")]
 
     opening_line: str = f"{start_of_string}(\n"
@@ -22,14 +21,19 @@ def format_as_multiline_string(start_of_string: str, sorted_slot_string: str) ->
     else:
         opening_white_space += "    "
 
-    sorted_slot_string += ","
-    multiline_slot_string: list[str] = [
-        f"{opening_white_space}{var}\n" for var in sorted_slot_string.split(" ")
-    ]
+    multiline_slot_string: list[str]
+    if type(sorted_slots) is str:
+        if sorted_slots[-1] != ",":
+            sorted_slots += ","
+        multiline_slot_string: list[str] = [
+            f"{opening_white_space}{var}\n" for var in sorted_slots.split(" ")
+        ]
+    else:
+        multiline_slot_string: list[str] = [
+            f"{opening_white_space}{var}\n" for var in sorted_slots
+        ]
 
-    sorted_slot_string = "".join(multiline_slot_string)
-
-    return f"{opening_line}{sorted_slot_string}{closing_line}"
+    return f"{opening_line}{''.join(multiline_slot_string)}{closing_line}"
 
 
 def sort_slots(file_contents: str, max_line_length: int) -> list[str]:
@@ -47,21 +51,39 @@ def sort_slots(file_contents: str, max_line_length: int) -> list[str]:
         start_of_string: str = slot["start"]
         text: str = slot["contents"]
 
-        text_list: list[str] = sorted(
-            [
+        text_list: list[str]
+        if "\n" not in text:
+            text_list: list[str] = [
                 clean_string
                 for split_string in text.split(",")
                 if (clean_string := re.sub(r"\s", "", split_string))
             ]
-        )
+
+        else:
+            text_list = [
+                clean_string
+                for split_string in text.split("\n")
+                if (clean_string := split_string.strip())
+            ]
+            if text_list and text_list[-1][-1] != ",":
+                text_list[-1] += ","
+        text_list.sort()
+
+        if not text_list:
+            replacements.append(text)
+            continue
+
         sorted_slot_string: str = ", ".join(text_list)
 
         length_if_one_line: int = len(start_of_string) + len(sorted_slot_string) + 2
         final_string: str
         if length_if_one_line > max_line_length:
-            final_string = format_as_multiline_string(
-                start_of_string, sorted_slot_string
+            final_string = format_as_multiline(
+                start_of_string, sorted_slot_string if "\n" not in text else text_list
             )
+        elif "\n" in text:
+            text_list[-1] = text_list[-1][:-1]  # remove last comma
+            final_string = f"{start_of_string}({' '.join(text_list)})"
         else:
             final_string = f"{start_of_string}({sorted_slot_string})"
 
