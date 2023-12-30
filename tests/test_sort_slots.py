@@ -112,7 +112,7 @@ class A:
     assert output == expected_output
 
 
-def test_with_comment_multiline():
+def test_multiline_with_comment():
     example_input: str = """
 class A:
     __slots__ = (
@@ -150,6 +150,28 @@ class A:
     expected_output: str = """
 class A:
     __slots__ = ("a", "b")
+"""
+    # set max line so only class A becomes multiline
+    formated_slots: str = sort_slots(example_input, max_line_length=40)
+    output: str = get_updated_file_contents(example_input, formated_slots)
+
+    assert output == expected_output
+
+
+def test_short_multiline_with_comment():
+    example_input: str = """
+class A:
+    __slots__ = (
+        "b",   # abc
+        "a",
+    )
+"""
+    expected_output: str = """
+class A:
+    __slots__ = (
+        "a",
+        "b",   # abc
+    )
 """
     # set max line so only class A becomes multiline
     formated_slots: str = sort_slots(example_input, max_line_length=40)

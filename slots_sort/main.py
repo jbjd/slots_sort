@@ -52,13 +52,14 @@ def sort_slots(file_contents: str, max_line_length: int) -> list[str]:
         text: str = slot["contents"]
 
         text_list: list[str]
+        inline_comment: bool
         if "\n" not in text:
             text_list: list[str] = [
                 clean_string
                 for split_string in text.split(",")
                 if (clean_string := re.sub(r"\s", "", split_string))
             ]
-
+            inline_comment = False
         else:
             text_list = [
                 clean_string
@@ -67,6 +68,7 @@ def sort_slots(file_contents: str, max_line_length: int) -> list[str]:
             ]
             if text_list and text_list[-1][-1] != ",":
                 text_list[-1] += ","
+            inline_comment = any(("#" in t[t.rfind('"') :]) for t in text_list)
         text_list.sort()
 
         if not text_list:
@@ -77,7 +79,9 @@ def sort_slots(file_contents: str, max_line_length: int) -> list[str]:
 
         length_if_one_line: int = len(start_of_string) + len(sorted_slot_string) + 2
         final_string: str
-        if length_if_one_line > max_line_length:
+        if inline_comment:
+            final_string = format_as_multiline(start_of_string, text_list)
+        elif length_if_one_line > max_line_length:
             final_string = format_as_multiline(
                 start_of_string, sorted_slot_string if "\n" not in text else text_list
             )
