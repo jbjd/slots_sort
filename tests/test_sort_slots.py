@@ -178,3 +178,68 @@ class A:
     output: str = get_updated_file_contents(example_input, formated_slots)
 
     assert output == expected_output
+
+
+def test_weird1():
+    example_input: str = """
+class A:
+    __slots__ = (
+        "b", "c",
+        "a",
+    )
+"""
+    expected_output: str = """
+class A:
+    __slots__ = ("a", "b", "c")
+"""
+    # set max line so only class A becomes multiline
+    formated_slots: str = sort_slots(example_input, max_line_length=40)
+    output: str = get_updated_file_contents(example_input, formated_slots)
+
+    assert output == expected_output
+
+
+def test_weird2():
+    example_input: str = """
+class A:
+    __slots__ = (
+        "bbbbbbbbbbbbbbbbbbbbbbbbbb", "c",
+        "a",
+    )
+"""
+    expected_output: str = """
+class A:
+    __slots__ = (
+        "a",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "c",
+    )
+"""
+    # set max line so only class A becomes multiline
+    formated_slots: str = sort_slots(example_input, max_line_length=40)
+    output: str = get_updated_file_contents(example_input, formated_slots)
+
+    assert output == expected_output
+
+
+def test_weird3():
+    example_input: str = """
+class A:
+    __slots__ = (
+        "b", "c", # asdf
+        "a",
+    )
+"""
+    expected_output: str = """
+class A:
+    __slots__ = (
+        "a",
+        "b",
+        "c", # asdf
+    )
+"""
+    # set max line so only class A becomes multiline
+    formated_slots: str = sort_slots(example_input, max_line_length=40)
+    output: str = get_updated_file_contents(example_input, formated_slots)
+
+    assert output == expected_output

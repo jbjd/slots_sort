@@ -69,6 +69,23 @@ def sort_slots(file_contents: str, max_line_length: int) -> list[str]:
             if text_list and text_list[-1][-1] != ",":
                 text_list[-1] += ","
             inline_comment = any(("#" in t[t.rfind('"') :]) for t in text_list)
+            multiple_var_and_comment: bool = any((t.count(",") > 1) for t in text_list)
+            if multiple_var_and_comment:
+                # we now need to remake the list, spliting up vars
+                new_text_list = []
+                for var in text_list:
+                    if var.count(",") < 2:
+                        new_text_list.append(var)
+                        continue
+                    seperated = [v for v in var.split(",") if v.strip()]
+                    seperated = [v.strip() for v in seperated[:-1]] + seperated[-1:]
+                    new_text_list += [f"{v}," for v in seperated[:-1]]
+                    if seperated[-1].strip()[0] == "#":
+                        new_text_list[-1] += seperated[-1]
+                    else:
+                        new_text_list.append(seperated[-1].strip() + ",")
+
+                text_list = new_text_list
         text_list.sort()
 
         if not text_list:
