@@ -29,7 +29,7 @@ class A:
         "abghjkl",
         "asdf",
         "asdf1234",
-        "zasdf"
+        "zasdf",
     )
 """
     # set max line length to small numer
@@ -46,7 +46,7 @@ class A:
     expected_output = """
 class A:
     __slots__ = (
-        "asdf"
+        "asdf",
     )
 """
     # set max line length to small numer
@@ -74,7 +74,7 @@ class A:
         "abghjkl",
         "asdf",
         "asdf1234",
-        "zasdf"
+        "zasdf",
     )
 
     class B:
